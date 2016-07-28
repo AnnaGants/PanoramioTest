@@ -1,0 +1,11 @@
+﻿<Application
+    x:Class="PanoramioTest.App"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PanoramioTest"
+    xmlns:ViewModel="using:PanoramioTest.ViewModel"
+    RequestedTheme="Light">
+    <Application.Resources>
+        <ViewModel:ViewModelLocator x:Key="Locator" />
+    </Application.Resources>
+</Application>

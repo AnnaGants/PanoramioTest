@@ -1,0 +1,156 @@
+﻿<Page x:Name="page"
+    x:Class="PanoramioTest.MainPage"
+    xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+    xmlns:local="using:PanoramioTest"
+    xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+    xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+    mc:Ignorable="d"
+    xmlns:Maps="using:Windows.UI.Xaml.Controls.Maps"
+    xmlns:interactivity="using:Microsoft.Xaml.Interactivity"
+    xmlns:core="using:Microsoft.Xaml.Interactions.Core"
+    xmlns:command="using:PanoramioTest.Infrastructure"
+    DataContext ="{Binding Main, Source={StaticResource Locator}}">
+
+    <Page.Resources>
+        <SolidColorBrush x:Key="BackgroundBrush" Color="#FFEEEEEE"/>
+        <SolidColorBrush x:Key="ShadowBrush" Color="#7F727272"/>
+        <SolidColorBrush x:Key="ErrorForegroundBrush" Color="Red"/>
+    </Page.Resources>
+
+    <interactivity:Interaction.Behaviors>
+        <core:EventTriggerBehavior EventName="Loaded">
+            <core:InvokeCommandAction Command="{Binding LoadedPageCommand}"/>
+        </core:EventTriggerBehavior>
+    </interactivity:Interaction.Behaviors>
+
+    <Grid x:Name="grid">
+        
+        <VisualStateManager.VisualStateGroups>
+            <VisualStateGroup x:Name="ViewPhotoGroup">
+                <VisualState x:Name="ViewPhoto">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames Storyboard.TargetName="SelectedPhoto" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Visible"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+                <VisualState x:Name="HidePhoto">
+                    <Storyboard>
+                        <ObjectAnimationUsingKeyFrames BeginTime="0" Storyboard.TargetName="SelectedPhoto" Storyboard.TargetProperty="Visibility">
+                            <DiscreteObjectKeyFrame KeyTime="0" Value="Collapsed"/>
+                        </ObjectAnimationUsingKeyFrames>
+                    </Storyboard>
+                </VisualState>
+            </VisualStateGroup>
+        </VisualStateManager.VisualStateGroups>
+
+        <Grid.RowDefinitions>
+            <RowDefinition Height="*"/>
+            <RowDefinition Height="auto"/>
+        </Grid.RowDefinitions>
+        
+        <Grid>
+            <Maps:MapControl ZoomLevel="{Binding ZoomLevel, Mode=TwoWay}" MapServiceToken="{Binding MapServiceToken}">
+                <Canvas Width="15" Height="40" Maps:MapControl.Location="{Binding Location}"  Maps:MapControl.NormalizedAnchorPoint="1,1" Opacity="0.8" Visibility="{Binding MarkVisibility}">
+                    <Path Data="M 0,0 L 30,0 30,30 15,40 0,30 0,0" Fill="Red" Stroke="White" StrokeThickness="2" />
+                </Canvas>
+                <interactivity:Interaction.Behaviors>
+                    <core:EventTriggerBehavior EventName="MapTapped">
+                        <command:InvokeCommandAction PassEventArgs="True" Command="{Binding MapTappedCommand}"/>
+                    </core:EventTriggerBehavior>
+                </interactivity:Interaction.Behaviors>
+            </Maps:MapControl>
+        </Grid>
+
+        <ListBox x:Name="listBox" ItemsSource="{Binding Photos, Mode=OneWay}" ScrollViewer.VerticalScrollBarVisibility="Auto" Width="100" HorizontalAlignment="Right"
+                 Visibility="{Binding PhotosVisibility}" SelectedItem="{Binding SelectedPhoto, Mode=TwoWay}">
+            <ListBox.ItemTemplate>
+                <DataTemplate>
+                    <Grid HorizontalAlignment="Stretch" VerticalAlignment="Stretch" Background="Transparent">
+                        <Image Source="{Binding photo_file_url}" Height="{Binding height}"/>
+                        <interactivity:Interaction.Behaviors>
+                            <core:EventTriggerBehavior EventName="Tapped">
+                                <core:InvokeCommandAction Command="{Binding Main.PhotoTappedCommand, Source={StaticResource Locator}}" CommandParameter="{Binding Mode=OneWay}"/>
+                                <core:GoToStateAction StateName="ViewPhoto" TargetObject="{Binding ElementName=page}"/>
+                            </core:EventTriggerBehavior>
+                        </interactivity:Interaction.Behaviors>
+                    </Grid>
+                </DataTemplate>
+            </ListBox.ItemTemplate>
+        </ListBox>
+
+        <ProgressBar IsIndeterminate="True" x:Name="LoadingPhotosProgress" Visibility="{Binding LoadingPhotosProgressVisibility}" VerticalAlignment="Top"/>
+
+        <Grid x:Name="ErrorMessage" Visibility="{Binding ErrorMessageVisibility}" VerticalAlignment="Bottom" Background="{StaticResource BackgroundBrush}" Padding="10" HorizontalAlignment="Left">
+            <TextBlock Text="{Binding ErrorMessage}" TextWrapping="WrapWholeWords" Foreground="{StaticResource ErrorForegroundBrush}"/>
+        </Grid>
+
+        <Grid Background="{StaticResource ShadowBrush}" x:Name="SelectedPhoto" Visibility="Collapsed"  VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+            <Grid.RowDefinitions>
+                <RowDefinition Height="*"/>
+                <RowDefinition Height="9*"/>
+                <RowDefinition Height="*"/>
+            </Grid.RowDefinitions>
+
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="*"/>
+                <ColumnDefinition Width="9*"/>
+                <ColumnDefinition Width="*"/>
+            </Grid.ColumnDefinitions>
+
+
+            <Grid Grid.Column="1" Grid.Row="1" Background="{StaticResource BackgroundBrush}" Width="auto" Padding="10">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="*"/>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+
+                <Image Grid.Row="0" Source="{Binding ImageSource}" VerticalAlignment="Stretch" HorizontalAlignment="Stretch">
+                    <interactivity:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="Tapped">
+                            <core:InvokeCommandAction Command="{Binding Main.ViewNextCommand, Source={StaticResource Locator}}"/>
+                        </core:EventTriggerBehavior>
+                    </interactivity:Interaction.Behaviors>
+                </Image>
+                <TextBlock Grid.Row="1" Text="{Binding SelectedPhoto.photo_title}" Style="{StaticResource SubtitleTextBlockStyle}" FontSize="20" Margin="0,6,0,2"/>
+                <TextBlock Grid.Row="2" Text="{Binding SelectedPhoto.owner_name}" Style="{StaticResource SubtitleTextBlockStyle}" FontSize="16" Margin="0"/>
+
+                <Button  Grid.Row="0" HorizontalAlignment="Right" VerticalAlignment="Top" Height="auto" Width="auto" BorderThickness="0" 
+                    Background="{StaticResource ShadowBrush}" x:Name="hideButton" Margin="0" Padding="5">
+                    <Button.Content>
+                        <Image Source="/Assets/appbar.close.png" Height="30"/>
+                    </Button.Content>
+                    <interactivity:Interaction.Behaviors>
+                        <core:EventTriggerBehavior EventName="Click">
+                            <core:GoToStateAction StateName="HidePhoto" TargetObject="{Binding ElementName=page}"/>
+                        </core:EventTriggerBehavior>
+                    </interactivity:Interaction.Behaviors>
+                </Button>
+            </Grid>
+
+            <Grid Grid.Column="1" Grid.Row="1" x:Name="LoadingPhotPprogress" Margin="30,0,30,0" HorizontalAlignment="Stretch" VerticalAlignment="Center">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="auto"/>
+                    <RowDefinition Height="auto"/>
+                </Grid.RowDefinitions>
+
+                <ProgressBar Grid.Row="0" IsIndeterminate="False" Value="{Binding LoadPhotoProgress}">
+                    <interactivity:Interaction.Behaviors>
+                        <core:DataTriggerBehavior Binding="{Binding LoadPhotoProgress}" Value="100">
+                            <core:ChangePropertyAction TargetObject="{Binding ElementName=LoadingPhotPprogress}" PropertyName="Visibility" Value="Collapsed"/>
+                        </core:DataTriggerBehavior>
+                        <core:DataTriggerBehavior Binding="{Binding LoadPhotoProgress}" Value="0">
+                            <core:ChangePropertyAction TargetObject="{Binding ElementName=LoadingPhotPprogress}" PropertyName="Visibility" Value="Visible"/>
+                        </core:DataTriggerBehavior>
+                    </interactivity:Interaction.Behaviors>
+                </ProgressBar>
+                <TextBlock Text="{Binding LoadingMessage}" Grid.Row="1" Style="{StaticResource BodyTextBlockStyle}" TextAlignment="Center"/>
+
+            </Grid>
+        </Grid>
+
+        <TextBlock Grid.Row="1" Text="Photos provided by Panoramio are under the copyright of their owners" Style="{StaticResource BodyTextBlockStyle}" Foreground="#FF616161"/>
+    </Grid>
+</Page>
